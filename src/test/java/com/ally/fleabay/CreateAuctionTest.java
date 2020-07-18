@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,16 +44,16 @@ public class CreateAuctionTest {
     @Autowired
     private AuctionRepository auctionRepository;
 
+    CreateAuctionRequest createAuctionRequest;
+
     @BeforeEach
     public void setup(){
-
+        createAuctionRequest = CreateAuctionRequest.builder().reservePrice(BigDecimal.TEN.setScale(2))
+                .item(Item.builder().itemId("id").description("description").build()).build();
     }
 
     @Test
-    public void whenValidRequestComesIn_SendProperResponse() throws Exception {
-        CreateAuctionRequest createAuctionRequest = CreateAuctionRequest.builder().reservePrice(10.0)
-                .item(Item.builder().itemId("id").description("description").build()).build();
-        
+    public void whenValidRequestComesIn_SendProperOkResponse() throws Exception {
         MvcResult result = mockMvc.perform(post("/auctionItems")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(createAuctionRequest))
@@ -63,13 +64,13 @@ public class CreateAuctionTest {
         assertEquals(createAuctionRequest.getReservePrice(), response.getReservePrice());
         assertEquals(createAuctionRequest.getItem().getItemId(), response.getItem().getItemId());
         assertEquals(createAuctionRequest.getItem().getDescription(), response.getItem().getDescription());
-        assertEquals(0.0d, response.getCurrentBid());
+        assertEquals(BigDecimal.ZERO.setScale(2), response.getCurrentBid());
     }
 
     @Test
     public void whenValidRequestComesIn_PersistAuctionObject() throws Exception {
-        CreateAuctionRequest createAuctionRequest = CreateAuctionRequest.builder().reservePrice(10.0)
-                .item(Item.builder().itemId("id").description("description").build()).build();
+        CreateAuctionRequest createAuctionRequest = CreateAuctionRequest.builder().reservePrice(BigDecimal.valueOf(100.00).setScale(2))
+                .item(Item.builder().itemId("otherId").description("otherDescription").build()).build();
 
         MvcResult result = mockMvc.perform(post("/auctionItems")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -83,9 +84,46 @@ public class CreateAuctionTest {
         assertTrue(databaseEntryOptional.isPresent());
 
         AuctionDatabaseEntry databaseEntry = databaseEntryOptional.get();
-        assertEquals(createAuctionRequest.getReservePrice(), databaseEntry.getReseverePrice());
+        assertEquals(createAuctionRequest.getReservePrice(), databaseEntry.getReservePrice());
         assertEquals(createAuctionRequest.getItem().getItemId(), databaseEntry.getItem().getItemId());
         assertEquals(createAuctionRequest.getItem().getDescription(), databaseEntry.getItem().getDescription());
-        assertEquals(0.0d, databaseEntry.getCurrentBid());
+        assertEquals(BigDecimal.ZERO.setScale(2), databaseEntry.getCurrentBid());
+    }
+
+    @Test
+    public void whenValidRequestComesIn_400WhenReservePriceMissing() throws Exception {
+        System.out.println(objectMapper.writeValueAsString(createAuctionRequest));
+
+        MvcResult result = mockMvc.perform(post("/auctionItems")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createAuctionRequest).replace("\"reservePrice\":10.0", ""))
+        ).andExpect(status().isBadRequest()).andReturn();
+    }
+
+    @Test
+    public void whenValidRequestComesIn_400WhenReservePriceLessThanOneDollar() throws Exception {
+        createAuctionRequest.setReservePrice(BigDecimal.valueOf(.99));
+        MvcResult result = mockMvc.perform(post("/auctionItems")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createAuctionRequest).replace("\"reservePrice\":10.0", ""))
+        ).andExpect(status().isBadRequest()).andReturn();
+    }
+
+    @Test
+    public void whenValidRequestComesIn_400WhenItemIdMissing() throws Exception {
+        MvcResult result = mockMvc.perform(post("/auctionItems")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createAuctionRequest).replace("\"itemId\":\"id\",", ""))
+        ).andExpect(status().isBadRequest()).andReturn();
+    }
+
+    @Test
+    public void whenValidRequestComesIn_400WhenItemDescriptionMissing() throws Exception {
+        MvcResult result = mockMvc.perform(post("/auctionItems")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createAuctionRequest).replace(",\"description\":\"description\"", ""))
+        ).andExpect(status().isBadRequest()).andReturn();
+
+        System.out.println(objectMapper.writeValueAsString(createAuctionRequest));
     }
 }

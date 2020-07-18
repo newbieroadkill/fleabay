@@ -1,16 +1,23 @@
 package com.ally.fleabay.models;
 
+import com.ally.fleabay.utils.BigDecimalJsonSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 
+import javax.validation.Valid;
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
 @Data
 @Builder
 public class CreateAuctionRequest {
     @NotNull
-    double reservePrice;
+    @DecimalMin("1.00")
+    @JsonSerialize(using = BigDecimalJsonSerializer.class)
+    BigDecimal reservePrice;
 
-    @NotNull
+    @Valid
     Item item;
 }

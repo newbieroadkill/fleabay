@@ -6,13 +6,15 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
+
 @Document
 @Data
 @Builder
 public class AuctionDatabaseEntry {
     @Id
     ObjectId id;
-    double reservePrice;
-    double currentBid;
+    BigDecimal reservePrice;
+    BigDecimal currentBid;
     Item item;
 }

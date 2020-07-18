@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class AuctionController {
     @PostMapping("/auctionItems")
     Auction createAuction(@Valid @RequestBody CreateAuctionRequest request){
         AuctionDatabaseEntry auctionDatabaseEntry = AuctionDatabaseEntry.builder()
-                .currentBid(0.0)
+                .currentBid(BigDecimal.ZERO.setScale(2))
                 .reservePrice(request.getReservePrice())
                 .item(request.getItem()).build();
 
