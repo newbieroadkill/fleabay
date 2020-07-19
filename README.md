@@ -4,10 +4,16 @@ This is the beginnings of an online auction application built to compete in the 
 
 ### Decisions / Deviations
 
-Because of the billing method, the minimum reserve and bid was set to $1.00.
+Because of the billing scheme suggested above, the minimum reserve and minimum bid are $1.00.
 
 The creation of an auction contains the auction object in the response of the POST, not just the unique identifier.
 
 Because MongoDB was chosen for the data persistence layer, the type of the auctionItemId was changed from an integer to a string, so that it can hold the ObjectId value used by MongoDB.
 
 ### If I Had More Time...
+- Get some better global settings on BigDecimal: Scale, Serialization, and Deserialization
+- Enable SSL
+- Implement pagination on the GET /auctionItems endpoint
+- Hook outbid events into an SNS topic
+- Work out the Cloud Formation template / CLI commands to deploy this application out to AWS using DocumentDB as the backend
+- Figure out the strategy around auctions ending

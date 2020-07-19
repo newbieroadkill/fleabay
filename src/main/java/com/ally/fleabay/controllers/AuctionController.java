@@ -2,10 +2,10 @@ package com.ally.fleabay.controllers;
 
 import com.ally.fleabay.exceptions.AuctionNotFoundException;
 import com.ally.fleabay.exceptions.InvalidObjectIdException;
-import com.ally.fleabay.models.Auction;
-import com.ally.fleabay.models.AuctionDatabaseEntry;
-import com.ally.fleabay.models.CreateAuctionRequest;
-import com.ally.fleabay.models.GetAuctionsResponse;
+import com.ally.fleabay.models.auction.Auction;
+import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
+import com.ally.fleabay.models.auction.CreateAuctionRequest;
+import com.ally.fleabay.models.auction.GetAuctionsResponse;
 import com.ally.fleabay.repositories.AuctionRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;

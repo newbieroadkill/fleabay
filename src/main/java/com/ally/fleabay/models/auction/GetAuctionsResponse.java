@@ -1,8 +1,5 @@
-package com.ally.fleabay.models;
+package com.ally.fleabay.models.auction;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;

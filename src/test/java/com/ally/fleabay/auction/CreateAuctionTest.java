@@ -1,8 +1,8 @@
 package com.ally.fleabay.auction;
 
-import com.ally.fleabay.models.Auction;
-import com.ally.fleabay.models.AuctionDatabaseEntry;
-import com.ally.fleabay.models.CreateAuctionRequest;
+import com.ally.fleabay.models.auction.Auction;
+import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
+import com.ally.fleabay.models.auction.CreateAuctionRequest;
 import com.ally.fleabay.models.Item;
 import com.ally.fleabay.repositories.AuctionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

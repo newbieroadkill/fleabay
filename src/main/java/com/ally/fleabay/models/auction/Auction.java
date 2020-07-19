@@ -1,5 +1,6 @@
-package com.ally.fleabay.models;
+package com.ally.fleabay.models.auction;
 
+import com.ally.fleabay.models.Item;
 import com.ally.fleabay.utils.BigDecimalJsonSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

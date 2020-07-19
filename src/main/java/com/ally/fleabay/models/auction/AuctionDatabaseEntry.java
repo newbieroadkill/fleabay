@@ -1,5 +1,6 @@
-package com.ally.fleabay.models;
+package com.ally.fleabay.models.auction;
 
+import com.ally.fleabay.models.Item;
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -16,6 +17,7 @@ public class AuctionDatabaseEntry {
     ObjectId id;
     BigDecimal reservePrice;
     BigDecimal currentBid;
+    BigDecimal maximumBid;
     String bidderName;
     Item item;
 }
