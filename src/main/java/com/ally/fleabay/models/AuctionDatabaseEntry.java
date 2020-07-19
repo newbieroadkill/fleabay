@@ -16,5 +16,6 @@ public class AuctionDatabaseEntry {
     ObjectId id;
     BigDecimal reservePrice;
     BigDecimal currentBid;
+    String bidderName;
     Item item;
 }
