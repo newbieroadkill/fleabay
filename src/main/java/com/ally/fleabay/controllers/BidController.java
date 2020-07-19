@@ -7,6 +7,7 @@ import com.ally.fleabay.models.BidRequest;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
 import com.ally.fleabay.repositories.AuctionRepository;
 import com.ally.fleabay.repositories.BidRepostiory;
+import com.ally.fleabay.services.BidService;
 import com.ally.fleabay.utils.MongoUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -21,7 +22,9 @@ import java.util.Optional;
 @RestController
 public class BidController {
 
-    int maxAttempts = 3;
+    private static final int MAX_ATTEMPTS = 3;
+    @Autowired
+    BidService bidService;
 
     @Autowired
     AuctionRepository auctionRepository;
@@ -31,45 +34,17 @@ public class BidController {
 
     @PostMapping("/bids")
     void createAuction(@Valid @RequestBody BidRequest bidRequest){
-         bidRepostiory.save(BidDatabaseEntry.builder().auctionItemId(bidRequest.getAuctionItemId())
-                .bidderName(bidRequest.getBidderName())
-                .maxAutoBidAmount(bidRequest.getMaxAutoBidAmount()).build());
+        bidService.logBid(bidRequest);
         AuctionDatabaseEntry result = null;
-
-        for(int attempts = 0; attempts < maxAttempts; attempts++) {
+        for(int attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
             try{
-                result = processBidRequest(bidRequest);
-                attempts = maxAttempts;
+                result = bidService.processBidRequest(bidRequest);
+                attempts = MAX_ATTEMPTS;
             } catch (OptimisticLockingFailureException ex){ }
         }
 
         if(result == null){
             throw new BiddingRetriesExhaustedException("Reached max retries");
         }
-
-    }
-
-    private AuctionDatabaseEntry processBidRequest(@RequestBody @Valid BidRequest bidRequest) {
-        Optional<AuctionDatabaseEntry> auctionDatabaseEntryOptional = auctionRepository.findById(MongoUtils.getObjectIdFromString(bidRequest.getAuctionItemId()));
-
-        if(auctionDatabaseEntryOptional.isPresent()){
-            AuctionDatabaseEntry auctionDatabaseEntry = auctionDatabaseEntryOptional.get();
-            if(auctionDatabaseEntry.getMaximumBid() == null || bidRequest.getMaxAutoBidAmount().compareTo(auctionDatabaseEntry.getMaximumBid()) > 0){
-                auctionDatabaseEntry.setBidderName(bidRequest.getBidderName());
-            }
-            auctionDatabaseEntry.setCurrentBid(calculateCurrentBid(bidRequest, auctionDatabaseEntry));
-            auctionDatabaseEntry.setMaximumBid(bidRequest.getMaxAutoBidAmount());
-            return auctionRepository.save(auctionDatabaseEntry);
-        } else {
-            throw new AuctionNotFoundException();
-        }
-    }
-
-    private BigDecimal calculateCurrentBid(BidRequest bidRequest, AuctionDatabaseEntry auctionDatabaseEntry){
-        BigDecimal highestNecessaryBidValue = auctionDatabaseEntry.getReservePrice();
-        if(auctionDatabaseEntry.getMaximumBid() != null && auctionDatabaseEntry.getMaximumBid().compareTo(highestNecessaryBidValue) > 0) {
-            highestNecessaryBidValue = highestNecessaryBidValue.max(auctionDatabaseEntry.getMaximumBid().add(new BigDecimal("1.00")));
-        }
-        return bidRequest.getMaxAutoBidAmount().min(highestNecessaryBidValue);
     }
 }
