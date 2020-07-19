@@ -2,6 +2,7 @@ package com.ally.fleabay.bid;
 
 import com.ally.fleabay.events.OutbidEvent;
 import com.ally.fleabay.events.publisher.CustomEventPublisher;
+import com.ally.fleabay.models.auction.Auction;
 import com.ally.fleabay.models.bid.BidDatabaseEntry;
 import com.ally.fleabay.models.bid.BidRequest;
 import com.ally.fleabay.models.Item;
@@ -21,6 +22,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -79,6 +81,26 @@ public class SuccessfulBidTest {
         assertEquals(new BigDecimal("1.00"), updatedDatabaseEntry.getCurrentBid());
         assertEquals(new BigDecimal("1.00"), updatedDatabaseEntry.getMaximumBid());
         assertEquals("Bob Al'Hashib", updatedDatabaseEntry.getBidderName());
+    }
+
+    @Test
+    public void whenNoOtherBidsHaveBeenPlaced_ReturnUpdatedAuction() throws Exception {
+        BidRequest bidRequest = BidRequest.builder().auctionItemId(auctionDatabaseEntry.getId().toHexString())
+                .maxAutoBidAmount(new BigDecimal("1.00"))
+                .bidderName("Bob Al'Hashib").build();
+
+        MvcResult result = mockMvc.perform(post("/bids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(bidRequest))
+        ).andExpect(status().isOk()).andReturn();
+
+        Auction response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Auction.class);
+
+        assertEquals(new BigDecimal("1.00"), response.getCurrentBid());
+        assertEquals(new BigDecimal("10.00"), response.getReservePrice());
+        assertEquals("Bob Al'Hashib", response.getBidderName());
+        assertEquals(auctionDatabaseEntry.getItem(), response.getItem());
+        assertEquals(auctionDatabaseEntry.getId().toHexString(), response.getId());
     }
 
     @Test

@@ -68,6 +68,15 @@ public class UnsuccessfulBidTest {
     }
 
     @Test
+    public void whenInvalidRequestComesIn_400WhenMaxAutoBidAmountLessThanOneDollar() throws Exception {
+        bidRequest.setMaxAutoBidAmount(new BigDecimal("0.99").setScale(2, RoundingMode.DOWN));
+        mockMvc.perform(post("/bids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bidRequest))
+        ).andExpect(status().isBadRequest()).andReturn();
+    }
+
+    @Test
     public void whenInvalidRequestComesIn_400WhenBidderNameMissing() throws Exception {
         mockMvc.perform(post("/bids")
                 .contentType(MediaType.APPLICATION_JSON)

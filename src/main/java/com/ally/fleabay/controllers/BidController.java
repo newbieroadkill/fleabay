@@ -1,6 +1,7 @@
 package com.ally.fleabay.controllers;
 
 import com.ally.fleabay.exceptions.BiddingRetriesExhaustedException;
+import com.ally.fleabay.models.auction.Auction;
 import com.ally.fleabay.models.bid.BidRequest;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
 import com.ally.fleabay.repositories.AuctionRepository;
@@ -28,7 +29,7 @@ public class BidController {
     BidRepostiory bidRepostiory;
 
     @PostMapping("/bids")
-    void createAuction(@Valid @RequestBody BidRequest bidRequest){
+    Auction createAuction(@Valid @RequestBody BidRequest bidRequest){
         bidService.logBid(bidRequest);
         AuctionDatabaseEntry result = null;
         for(int attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
@@ -41,5 +42,14 @@ public class BidController {
         if(result == null){
             throw new BiddingRetriesExhaustedException("Reached max retries");
         }
+        return auctionFromDatabaseEntry(result);
+    }
+
+    private Auction auctionFromDatabaseEntry(AuctionDatabaseEntry auctionDatabaseEntry){
+        return Auction.builder().id(auctionDatabaseEntry.getId().toHexString())
+                .currentBid(auctionDatabaseEntry.getCurrentBid())
+                .bidderName(auctionDatabaseEntry.getBidderName())
+                .reservePrice(auctionDatabaseEntry.getReservePrice())
+                .item(auctionDatabaseEntry.getItem()).build();
     }
 }
