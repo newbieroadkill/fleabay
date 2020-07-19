@@ -1,5 +1,6 @@
 package com.ally.fleabay.controllers;
 
+import com.ally.fleabay.exceptions.AuctionNotFoundException;
 import com.ally.fleabay.models.BidDatabaseEntry;
 import com.ally.fleabay.models.BidRequest;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
@@ -29,17 +30,21 @@ public class BidController {
     void createAuction(@Valid @RequestBody BidRequest bidRequest){
          Optional<AuctionDatabaseEntry> auctionDatabaseEntryOptional = auctionRepository.findById(MongoUtils.getObjectIdFromString(bidRequest.getAuctionItemId()));
 
-         if(auctionDatabaseEntryOptional.isPresent()){
+        bidRepostiory.save(BidDatabaseEntry.builder().auctionItemId(bidRequest.getAuctionItemId())
+                .bidderName(bidRequest.getBidderName())
+                .maxAutoBidAmount(bidRequest.getMaxAutoBidAmount()).build());
+
+        if(auctionDatabaseEntryOptional.isPresent()){
             AuctionDatabaseEntry auctionDatabaseEntry = auctionDatabaseEntryOptional.get();
-            auctionDatabaseEntry.setBidderName(bidRequest.getBidderName());
+            if(auctionDatabaseEntry.getMaximumBid() == null || bidRequest.getMaxAutoBidAmount().compareTo(auctionDatabaseEntry.getMaximumBid()) > 0){
+                auctionDatabaseEntry.setBidderName(bidRequest.getBidderName());
+            }
             auctionDatabaseEntry.setCurrentBid(calculateCurrentBid(bidRequest, auctionDatabaseEntry));
             auctionDatabaseEntry.setMaximumBid(bidRequest.getMaxAutoBidAmount());
             auctionRepository.save(auctionDatabaseEntry);
-         }
-
-         bidRepostiory.save(BidDatabaseEntry.builder().auctionItemId(bidRequest.getAuctionItemId())
-                 .bidderName(bidRequest.getBidderName())
-                 .maxAutoBidAmount(bidRequest.getMaxAutoBidAmount()).build());
+        } else {
+            throw new AuctionNotFoundException();
+        }
     }
 
     private BigDecimal calculateCurrentBid(BidRequest bidRequest, AuctionDatabaseEntry auctionDatabaseEntry){

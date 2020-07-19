@@ -160,4 +160,30 @@ public class SuccessfulBidTest {
         assertEquals(new BigDecimal("15.01"), updatedDatabaseEntry.getMaximumBid());
         assertEquals("Bob Al'Hashib", updatedDatabaseEntry.getBidderName());
     }
+
+    @Test
+    public void whenRequestComesInWithSameMaxBidAsCurrentMaxBid_UpdateCurrentBidButNotBidderName() throws Exception {
+        auctionDatabaseEntry = auctionRepository.save(AuctionDatabaseEntry.builder()
+                .reservePrice(BigDecimal.TEN.setScale(2, RoundingMode.DOWN))
+                .currentBid(new BigDecimal("5.00").setScale(2, RoundingMode.DOWN))
+                .maximumBid(new BigDecimal("15.00").setScale(2, RoundingMode.DOWN))
+                .bidderName("Chuck Al'Hashib")
+                .item(Item.builder().itemId("id").description("description").build()).build());
+
+        BidRequest bidRequest = BidRequest.builder().auctionItemId(auctionDatabaseEntry.getId().toHexString())
+                .maxAutoBidAmount(new BigDecimal("15.00"))
+                .bidderName("Bob Al'Hashib").build();
+
+        mockMvc.perform(post("/bids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(bidRequest))
+        ).andExpect(status().isOk()).andReturn();
+
+        AuctionDatabaseEntry updatedDatabaseEntry = auctionRepository.findById(auctionDatabaseEntry.getId()).get();
+
+        assertEquals(new BigDecimal("15.00"), updatedDatabaseEntry.getCurrentBid());
+        assertEquals(new BigDecimal("15.00"), updatedDatabaseEntry.getMaximumBid());
+        assertEquals("Chuck Al'Hashib", updatedDatabaseEntry.getBidderName());
+        
+    }
 }

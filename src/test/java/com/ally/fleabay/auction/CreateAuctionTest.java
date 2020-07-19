@@ -87,7 +87,7 @@ public class CreateAuctionTest {
     }
 
     @Test
-    public void whenValidRequestComesIn_400WhenReservePriceMissing() throws Exception {
+    public void whenInvalidRequestComesIn_400WhenReservePriceMissing() throws Exception {
         mockMvc.perform(post("/auctionItems")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createAuctionRequest).replace("\"reservePrice\":10.0", ""))
@@ -95,7 +95,7 @@ public class CreateAuctionTest {
     }
 
     @Test
-    public void whenValidRequestComesIn_400WhenReservePriceLessThanOneDollar() throws Exception {
+    public void whenInvalidRequestComesIn_400WhenReservePriceLessThanOneDollar() throws Exception {
         createAuctionRequest.setReservePrice(BigDecimal.valueOf(.99));
         mockMvc.perform(post("/auctionItems")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -104,7 +104,7 @@ public class CreateAuctionTest {
     }
 
     @Test
-    public void whenValidRequestComesIn_400WhenItemIdMissing() throws Exception {
+    public void whenInvalidRequestComesIn_400WhenItemIdMissing() throws Exception {
         mockMvc.perform(post("/auctionItems")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createAuctionRequest).replace("\"itemId\":\"id\",", ""))
@@ -112,7 +112,7 @@ public class CreateAuctionTest {
     }
 
     @Test
-    public void whenValidRequestComesIn_400WhenItemDescriptionMissing() throws Exception {
+    public void whenInvalidRequestComesIn_400WhenItemDescriptionMissing() throws Exception {
         mockMvc.perform(post("/auctionItems")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createAuctionRequest).replace(",\"description\":\"description\"", ""))
