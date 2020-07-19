@@ -10,7 +10,11 @@ The creation of an auction contains the auction object in the response of the PO
 
 Because MongoDB was chosen for the data persistence layer, the type of the auctionItemId was changed from an integer to a string, so that it can hold the ObjectId value used by MongoDB.
 
-Implemented transaction style processing on bid updates with retries for now.  Would need to do in depth testing to see if the JPA @Version is enough for large amounts of concurrent requests.
+Implemented transaction style processing on bid updates with retries for now.  Would need to do in depth testing to see if the JPA `@Version` is enough for large amounts of concurrent requests.
+
+Decided to return an Auction object on the `/bids` POST to give the client an updated view of how their bid affected the auction.  Would consider moving this endpoint to `/auctionItems/{auctionItemId}/bids` to be more in line with RESTful conventions, but did not want to deviate that much from the specification given.
+
+Because of the bid response, outbid events are only produced when the bidderName is changed at the persistence layer.
 
 ### If I Had More Time...
 - Get some better global settings on BigDecimal: Scale, Serialization, and Deserialization

@@ -1,11 +1,9 @@
 package com.ally.fleabay.bid;
 
-import com.ally.fleabay.models.BidRequest;
+import com.ally.fleabay.models.bid.BidRequest;
 import com.ally.fleabay.models.Item;
-import com.ally.fleabay.models.auction.Auction;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
 import com.ally.fleabay.repositories.AuctionRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package com.ally.fleabay.models;
+package com.ally.fleabay.models.bid;
 
 import lombok.Builder;
 import lombok.Data;

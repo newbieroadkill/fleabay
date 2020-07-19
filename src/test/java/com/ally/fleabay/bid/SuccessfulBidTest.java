@@ -1,29 +1,33 @@
 package com.ally.fleabay.bid;
 
-import com.ally.fleabay.models.BidDatabaseEntry;
-import com.ally.fleabay.models.BidRequest;
+import com.ally.fleabay.events.OutbidEvent;
+import com.ally.fleabay.events.publisher.CustomEventPublisher;
+import com.ally.fleabay.models.bid.BidDatabaseEntry;
+import com.ally.fleabay.models.bid.BidRequest;
 import com.ally.fleabay.models.Item;
-import com.ally.fleabay.models.auction.Auction;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
 import com.ally.fleabay.repositories.AuctionRepository;
 import com.ally.fleabay.repositories.BidRepostiory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,6 +47,9 @@ public class SuccessfulBidTest {
 
     @Autowired
     private BidRepostiory bidRepostiory;
+
+    @MockBean
+    private CustomEventPublisher customEventPublisher;
 
     AuctionDatabaseEntry auctionDatabaseEntry;
 
@@ -134,6 +141,32 @@ public class SuccessfulBidTest {
         assertEquals(new BigDecimal("16.00"), updatedDatabaseEntry.getCurrentBid());
         assertEquals(new BigDecimal("20.00"), updatedDatabaseEntry.getMaximumBid());
         assertEquals("Bob Al'Hashib", updatedDatabaseEntry.getBidderName());
+    }
+
+    @Test
+    public void whenOtherBidsHaveBeenPlacedAndMaxBidGreaterThanCurrentMaxBid_SendOutbidEvent() throws Exception {
+        auctionDatabaseEntry = auctionRepository.save(AuctionDatabaseEntry.builder()
+                .reservePrice(BigDecimal.TEN.setScale(2, RoundingMode.DOWN))
+                .currentBid(new BigDecimal("5.00").setScale(2, RoundingMode.DOWN))
+                .maximumBid(new BigDecimal("15.00").setScale(2, RoundingMode.DOWN))
+                .bidderName("Chuck Al'Hashib")
+                .item(Item.builder().itemId("id").description("description").build()).build());
+
+        BidRequest bidRequest = BidRequest.builder().auctionItemId(auctionDatabaseEntry.getId().toHexString())
+                .maxAutoBidAmount(new BigDecimal("20.00"))
+                .bidderName("Bob Al'Hashib").build();
+
+        ArgumentCaptor<OutbidEvent> argumentCaptor = ArgumentCaptor.forClass(OutbidEvent.class);
+
+        mockMvc.perform(post("/bids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(bidRequest))
+        ).andExpect(status().isOk()).andReturn();
+
+        verify(customEventPublisher).publishOutbidEvent(argumentCaptor.capture());
+        OutbidEvent outbidEvent = argumentCaptor.getValue();
+        assertEquals(auctionDatabaseEntry.getId().toHexString(), outbidEvent.getAuctionItemId());
+        assertEquals("Chuck Al'Hashib", outbidEvent.getBidderName());
     }
 
     @Test

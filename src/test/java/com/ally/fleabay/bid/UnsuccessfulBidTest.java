@@ -1,6 +1,6 @@
 package com.ally.fleabay.bid;
 
-import com.ally.fleabay.models.BidRequest;
+import com.ally.fleabay.models.bid.BidRequest;
 import com.ally.fleabay.models.Item;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
 import com.ally.fleabay.repositories.AuctionRepository;

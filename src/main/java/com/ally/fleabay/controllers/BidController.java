@@ -1,14 +1,11 @@
 package com.ally.fleabay.controllers;
 
-import com.ally.fleabay.exceptions.AuctionNotFoundException;
 import com.ally.fleabay.exceptions.BiddingRetriesExhaustedException;
-import com.ally.fleabay.models.BidDatabaseEntry;
-import com.ally.fleabay.models.BidRequest;
+import com.ally.fleabay.models.bid.BidRequest;
 import com.ally.fleabay.models.auction.AuctionDatabaseEntry;
 import com.ally.fleabay.repositories.AuctionRepository;
 import com.ally.fleabay.repositories.BidRepostiory;
 import com.ally.fleabay.services.BidService;
-import com.ally.fleabay.utils.MongoUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.util.Optional;
 
 @RestController
 public class BidController {
